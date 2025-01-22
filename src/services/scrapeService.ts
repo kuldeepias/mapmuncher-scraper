@@ -15,7 +15,7 @@ export const scrapeGoogleMaps = async (businessType: string, location: string): 
     let currentPage = 0;
     let hasMoreResults = true;
 
-    while (hasMoreResults && currentPage < 5) { // Limit to 5 pages to avoid rate limits
+    while (hasMoreResults) {
       const response = await axios.post(
         'https://google.serper.dev/search',
         {
@@ -31,7 +31,8 @@ export const scrapeGoogleMaps = async (businessType: string, location: string): 
         }
       );
 
-      if (!response.data.places || response.data.places.length === 0) {
+      // If no places or serpapi_pagination is null/undefined, we've reached the end
+      if (!response.data.places || response.data.places.length === 0 || !response.data.serpapi_pagination) {
         hasMoreResults = false;
         break;
       }
