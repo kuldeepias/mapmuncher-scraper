@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchForm } from "@/components/SearchForm";
 import { ResultsTable } from "@/components/ResultsTable";
 import { scrapeGoogleMaps } from "@/services/scrapeService";
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface BusinessData {
   name: string;
@@ -16,8 +19,27 @@ interface BusinessData {
 const Index = () => {
   const [results, setResults] = useState<BusinessData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('SERPER_API_KEY') || '');
+
+  const handleApiKeySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('SERPER_API_KEY', apiKey);
+    toast({
+      title: "Success",
+      description: "API key has been saved",
+    });
+  };
 
   const handleSearch = async (businessType: string, location: string) => {
+    if (!apiKey) {
+      toast({
+        title: "Error",
+        description: "Please set your Serper.dev API key first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const data = await scrapeGoogleMaps(businessType, location);
@@ -68,6 +90,23 @@ const Index = () => {
       <h1 className="text-3xl font-bold mb-8 text-center">
         Google Maps Business Scraper
       </h1>
+      
+      <div className="mb-8 p-4 border rounded-lg">
+        <form onSubmit={handleApiKeySubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="apiKey">Serper.dev API Key</Label>
+            <Input
+              id="apiKey"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your Serper.dev API key"
+            />
+          </div>
+          <Button type="submit">Save API Key</Button>
+        </form>
+      </div>
+
       <SearchForm onSearch={handleSearch} isLoading={isLoading} />
       <ResultsTable data={results} onExport={handleExport} />
     </div>
