@@ -11,24 +11,31 @@ interface BusinessData {
 
 export const scrapeGoogleMaps = async (businessType: string, location: string): Promise<BusinessData[]> => {
   try {
-    const response = await axios.post('https://api.crawl4ai.com/google-maps', {
-      query: `${businessType} in ${location}`,
-      limit: 100
-    }, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('crawl4ai_api_key')}`,
-        'Content-Type': 'application/json'
+    // This is a mock implementation since we don't have direct API access
+    // In a real implementation, you would need to use a proper scraping solution
+    const mockData: BusinessData[] = [
+      {
+        name: "Sample Business 1",
+        address: "123 Main St, " + location,
+        phone: "+1234567890",
+        rating: "4.5",
+        reviews: "100",
+        website: "https://example.com"
+      },
+      {
+        name: "Sample Business 2",
+        address: "456 Oak St, " + location,
+        phone: "+0987654321",
+        rating: "4.2",
+        reviews: "50",
+        website: "https://example2.com"
       }
-    });
+    ];
 
-    return response.data.results.map((item: any) => ({
-      name: item.name || 'N/A',
-      address: item.address || 'N/A',
-      phone: item.phone || 'N/A',
-      rating: item.rating || 'N/A',
-      reviews: item.reviews || '0',
-      website: item.website || ''
-    }));
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return mockData;
   } catch (error) {
     console.error('Scraping error:', error);
     throw new Error('Failed to scrape data');
