@@ -4,16 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const user = localStorage.getItem('user');
-  if (!user) {
+  const [session] = useState(() => supabase.auth.getSession());
+  
+  if (!session) {
     return <Navigate to="/login" />;
   }
   return <>{children}</>;
@@ -21,18 +21,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
-      } else {
-        localStorage.removeItem('user');
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthenticated(!!session);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {
