@@ -28,7 +28,10 @@ export const ResultsTable = ({ data, onExport }: ResultsTableProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          Total results: {data.length} businesses
+        </div>
         <Button onClick={onExport} className="flex items-center gap-2">
           <Download size={16} />
           Export CSV
@@ -38,6 +41,7 @@ export const ResultsTable = ({ data, onExport }: ResultsTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-14">#</TableHead>
               <TableHead>Business Name</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Phone</TableHead>
@@ -49,6 +53,7 @@ export const ResultsTable = ({ data, onExport }: ResultsTableProps) => {
           <TableBody>
             {data.map((business, index) => (
               <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>{business.name}</TableCell>
                 <TableCell>{business.address}</TableCell>
                 <TableCell>{business.phone}</TableCell>
