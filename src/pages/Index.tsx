@@ -41,12 +41,18 @@ const Index = () => {
     }
 
     setIsLoading(true);
+    setResults([]); // Clear previous results
+    
     try {
-      const data = await scrapeGoogleMaps(businessType, location);
-      setResults(data);
+      const scrapeGenerator = scrapeGoogleMaps(businessType, location);
+      
+      for await (const newResults of scrapeGenerator) {
+        setResults(prevResults => [...prevResults, ...newResults]);
+      }
+
       toast({
         title: "Success",
-        description: `Found ${data.length} businesses`,
+        description: `Scraping completed`,
       });
     } catch (error) {
       toast({

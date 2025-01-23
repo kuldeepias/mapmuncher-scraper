@@ -9,13 +9,12 @@ interface BusinessData {
   website?: string;
 }
 
-export const scrapeGoogleMaps = async (businessType: string, location: string): Promise<BusinessData[]> => {
+export async function* scrapeGoogleMaps(businessType: string, location: string): AsyncGenerator<BusinessData[], void, unknown> {
   try {
-    let allPlaces: BusinessData[] = [];
     let currentPage = 0;
     let hasMoreResults = true;
     let consecutiveEmptyResponses = 0;
-    const maxConsecutiveEmptyResponses = 3; // Stop after 3 consecutive empty responses
+    const maxConsecutiveEmptyResponses = 3;
 
     while (hasMoreResults) {
       try {
@@ -42,7 +41,7 @@ export const scrapeGoogleMaps = async (businessType: string, location: string): 
             break;
           }
         } else {
-          consecutiveEmptyResponses = 0; // Reset counter when we get results
+          consecutiveEmptyResponses = 0;
           
           const newPlaces = response.data.places.map((place: any) => ({
             name: place.title || 'N/A',
@@ -53,31 +52,25 @@ export const scrapeGoogleMaps = async (businessType: string, location: string): 
             website: place.website || ''
           }));
 
-          allPlaces = [...allPlaces, ...newPlaces];
-          console.log(`Fetched page ${currentPage + 1}, total results: ${allPlaces.length}`);
+          console.log(`Fetched page ${currentPage + 1}, total results: ${newPlaces.length}`);
+          yield newPlaces;
         }
 
         currentPage++;
-
-        // Add a delay between requests to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 2000));
 
       } catch (error: any) {
         if (error.response?.status === 429) {
-          // Rate limit hit - wait longer before retrying
           console.log('Rate limit hit, waiting before retrying...');
           await new Promise(resolve => setTimeout(resolve, 5000));
           continue;
         }
         console.error('Error fetching page:', error);
-        hasMoreResults = false;
-        break;
+        throw error;
       }
     }
-
-    return allPlaces;
   } catch (error) {
     console.error('Scraping error:', error);
     throw new Error('Failed to fetch data from Serper.dev');
   }
-};
+}
